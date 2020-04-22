@@ -1,18 +1,16 @@
 package com.onelogin.saml2.servlet;
 
+import com.onelogin.saml2.http.HttpRequest;
+import com.onelogin.saml2.util.Util;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.onelogin.saml2.http.HttpRequest;
-import com.onelogin.saml2.util.Util;
 
 /**
  * ServletUtils class of OneLogin's Java Toolkit.
@@ -24,22 +22,22 @@ public class ServletUtils {
 	private ServletUtils() {
 	      //not called
 	}
-	
+
 	/**
      * Creates an HttpRequest from an HttpServletRequest.
      *
-     * @param req the incoming HttpServletRequest
+     * @param request the incoming HttpServletRequest
      * @return a HttpRequest
      */
-    public static HttpRequest makeHttpRequest(HttpServletRequest req) {
+    public static HttpRequest makeHttpRequest(HttpServletRequest request) {
     	@SuppressWarnings("unchecked")
-        final Map<String, String[]> paramsAsArray = (Map<String, String[]>) req.getParameterMap();
+        final Map<String, String[]> paramsAsArray = (Map<String, String[]>) request.getParameterMap();
         final Map<String, List<String>> paramsAsList = new HashMap<>();
         for (Map.Entry<String, String[]> param : paramsAsArray.entrySet()) {
             paramsAsList.put(param.getKey(), Arrays.asList(param.getValue()));
         }
 
-        return new HttpRequest(req.getRequestURL().toString(), paramsAsList, req.getQueryString());
+        return new HttpRequest(getSelfURLNoQuery(request), paramsAsList, request.getQueryString());
     }
 
     /**
@@ -55,9 +53,9 @@ public class ServletUtils {
         String hostUrl = StringUtils.EMPTY;
         final int serverPort = request.getServerPort();
         if ((serverPort == 80) || (serverPort == 443) || serverPort == 0) {
-            hostUrl = String.format("%s://%s", request.getScheme(), request.getServerName());
+            hostUrl = String.format("%s://%s", getScheme(request), request.getServerName());
         } else {
-            hostUrl = String.format("%s://%s:%s", request.getScheme(), request.getServerName(), serverPort);
+            hostUrl = String.format("%s://%s:%s", getScheme(request), request.getServerName(), serverPort);
         }
         return hostUrl;
     }
@@ -81,7 +79,28 @@ public class ServletUtils {
      * @return false if https is not active
      */
     public static boolean isHTTPS(HttpServletRequest request) {
-        return request.isSecure();
+        return getScheme(request).equalsIgnoreCase("https");
+    }
+
+    /**
+     * Returns the name of the scheme used to make this request, for example, http, https, or ftp.
+     *
+     * @param request
+     * 				HttpServletRequest object to be processed
+     *
+     * @return a String containing the name of the scheme used to make the request
+     */
+    public static String getScheme(HttpServletRequest request) {
+        String scheme;
+
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+        if (forwardedProto == null) {
+            scheme = request.getScheme();
+        } else {
+            scheme = forwardedProto.trim();
+        }
+
+        return scheme;
     }
 
     /**
@@ -117,7 +136,8 @@ public class ServletUtils {
      * @return current host + current view
      */
     public static String getSelfURLNoQuery(HttpServletRequest request) {
-        return request.getRequestURL().toString();
+        String url = request.getRequestURL().toString();
+        return url.replaceFirst("^http(s)?:", getScheme(request) + ":");
     }
 
     /**
@@ -148,7 +168,7 @@ public class ServletUtils {
      * 				GET parameters to be added
 	 * @param stay
 	 *            True if we want to stay (returns the url string) False to execute redirection
-     * 
+     *
      * @return string the target URL
      * @throws IOException
      *
@@ -197,7 +217,7 @@ public class ServletUtils {
     public static void sendRedirect(HttpServletResponse response, String location, Map<String, String> parameters) throws IOException {
     	sendRedirect(response, location, parameters, false);
     }
-    	
+
     /**
      * Redirect to location url
      *

@@ -82,7 +82,7 @@ public class SamlResponse {
 
 	/**
 	 * After validation, if it fails this property has the cause of the problem
-	 */ 
+	 */
 	private String error;
 
 	/**
@@ -124,8 +124,8 @@ public class SamlResponse {
 	 * @throws ValidationError
 	 */
 	public void loadXmlFromBase64(String responseStr) throws ParserConfigurationException, XPathExpressionException, SAXException, IOException, SettingsException, ValidationError {
-		samlResponseString = new String(Util.base64decoder(responseStr), "UTF-8");
-		samlResponseDocument = Util.loadXML(samlResponseString);
+//		samlResponseString = new String(Util.base64decoder(responseStr), "UTF-8");
+		samlResponseDocument = Util.loadXML(responseStr);
 
 		if (samlResponseDocument == null) {
 			throw new ValidationError("SAML Response could not be processed", ValidationError.INVALID_XML_FORMAT);
@@ -133,7 +133,7 @@ public class SamlResponse {
 
 		NodeList encryptedAssertionNodes = samlResponseDocument.getElementsByTagNameNS(Constants.NS_SAML,"EncryptedAssertion");
 
-		if (encryptedAssertionNodes.getLength() != 0) {			
+		if (encryptedAssertionNodes.getLength() != 0) {
 			decryptedDocument = Util.copyDocument(samlResponseDocument);
 			encrypted = true;
 			decryptedDocument = this.decryptAssertion(decryptedDocument);
@@ -543,12 +543,12 @@ public class SamlResponse {
 	 * @throws XPathExpressionException
 	 * @throws ValidationError
      *
-     */	
+     */
 	public HashMap<String, List<String>> getAttributes() throws XPathExpressionException, ValidationError {
 		HashMap<String, List<String>> attributes = new HashMap<String, List<String>>();
 
 		NodeList nodes = this.queryAssertion("/saml:AttributeStatement/saml:Attribute");
-		
+
 		if (nodes.getLength() != 0) {
 			for (int i = 0; i < nodes.getLength(); i++) {
 				NamedNodeMap attrName = nodes.item(i).getAttributes();
@@ -556,7 +556,7 @@ public class SamlResponse {
 				if (attributes.containsKey(attName)) {
 					throw new ValidationError("Found an Attribute element with duplicated Name", ValidationError.DUPLICATED_ATTRIBUTE_NAME_FOUND);
 				}
-				
+
 				NodeList childrens = nodes.item(i).getChildNodes();
 
 				List<String> attrValues = new ArrayList<String>();
@@ -602,7 +602,7 @@ public class SamlResponse {
 	 *
 	 * @throws IllegalArgumentException
 	 *             if the response not contain status or if Unexpected XPath error
-	 * @throws ValidationError 
+	 * @throws ValidationError
 	 */
 	public static SamlResponseStatus getStatus(Document dom) throws ValidationError {
 		String statusXpath = "/samlp:Response/samlp:Status";
@@ -645,7 +645,7 @@ public class SamlResponse {
 	 * Gets the audiences.
 	 *
 	 * @return the audiences of the response
-	 * 
+	 *
 	 * @throws XPathExpressionException
 	 */
 	public List<String> getAudiences() throws XPathExpressionException {
@@ -669,8 +669,8 @@ public class SamlResponse {
 	 *
 	 * @return the issuers of the assertion/response
 	 *
-	 * @throws XPathExpressionException 
-	 * @throws ValidationError 
+	 * @throws XPathExpressionException
+	 * @throws ValidationError
 	 */
 	public List<String> getIssuers() throws XPathExpressionException, ValidationError {
 		List<String> issuers = new ArrayList<String>();
@@ -726,7 +726,7 @@ public class SamlResponse {
      *
      * @return the SessionIndex value
      *
-     * @throws XPathExpressionException 
+     * @throws XPathExpressionException
      */
     public String getSessionIndex() throws XPathExpressionException {
         String sessionIndex = null;
@@ -815,7 +815,7 @@ public class SamlResponse {
 
 			String responseTag = "{" + Constants.NS_SAMLP  + "}Response";
 			String assertionTag = "{" + Constants.NS_SAML + "}Assertion";
-			
+
 			if (!signedElement.equals(responseTag) && !signedElement.equals(assertionTag)) {
 				throw new ValidationError("Invalid Signature Element " + signedElement + " SAML Response rejected", ValidationError.WRONG_SIGNED_ELEMENT);
 			}
@@ -825,13 +825,13 @@ public class SamlResponse {
 			if (idNode == null || idNode.getNodeValue() == null || idNode.getNodeValue().isEmpty()) {
 				throw new ValidationError("Signed Element must contain an ID. SAML Response rejected", ValidationError.ID_NOT_FOUND_IN_SIGNED_ELEMENT);
 			}
-			
-			String idValue = idNode.getNodeValue();			
+
+			String idValue = idNode.getNodeValue();
 			if (verifiedIds.contains(idValue)) {
 				throw new ValidationError("Duplicated ID. SAML Response rejected", ValidationError.DUPLICATED_ID_IN_SIGNED_ELEMENTS);
 			}
 			verifiedIds.add(idValue);
-			
+
 			NodeList refNodes = Util.query(null, "ds:SignedInfo/ds:Reference", signNode);
 			if (refNodes.getLength() == 1) {
 				Node refNode = refNodes.item(0);
@@ -841,7 +841,7 @@ public class SamlResponse {
 					if (!sei.equals(idValue)) {
 						throw new ValidationError("Found an invalid Signed Element. SAML Response rejected", ValidationError.INVALID_SIGNED_ELEMENT);
 					}
-					
+
 					if (verifiedSeis.contains(sei)) {
 						throw new ValidationError("Duplicated Reference URI. SAML Response rejected", ValidationError.DUPLICATED_REFERENCE_IN_SIGNED_ELEMENTS);
 					}
@@ -921,7 +921,7 @@ public class SamlResponse {
 	 *
 	 * @return true if still valid
 	 *
-	 * @throws ValidationError 
+	 * @throws ValidationError
 	 */
 	public boolean validateTimestamps() throws ValidationError {
 		NodeList timestampNodes = samlResponseDocument.getElementsByTagNameNS("*", "Conditions");
@@ -964,7 +964,7 @@ public class SamlResponse {
 	/**
      * After execute a validation process, if fails this method returns the cause
      *
-     * @return the cause of the validation error 
+     * @return the cause of the validation error
      */
 	public String getError() {
 		if (error != null) {
@@ -980,7 +980,7 @@ public class SamlResponse {
 	 *				Xpath Expression
 	 *
 	 * @return the queried node
-	 * @throws XPathExpressionException 
+	 * @throws XPathExpressionException
 	 *
 	 */
 	private NodeList queryAssertion(String assertionXpath) throws XPathExpressionException {
@@ -1029,7 +1029,7 @@ public class SamlResponse {
      *
      * @param nameQuery
      *				Xpath Expression
-     * @param context 
+     * @param context
      *              The context node
      *
      * @return DOMNodeList The queried nodes
@@ -1048,13 +1048,13 @@ public class SamlResponse {
 
 	/**
 	 * Decrypt assertion.
-	 * 
+	 *
 	 * @param dom
 	 *            Encrypted assertion
 	 *
 	 * @return Decrypted Assertion.
 	 *
-	 * @throws XPathExpressionException 
+	 * @throws XPathExpressionException
 	 * @throws IOException
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
@@ -1092,7 +1092,7 @@ public class SamlResponse {
 	}
 
 	/**
-	 * @return the SAMLResponse XML, If the Assertion of the SAMLResponse was encrypted,  
+	 * @return the SAMLResponse XML, If the Assertion of the SAMLResponse was encrypted,
 	 *         returns the XML with the assertion decrypted
 	 */
 	public String getSAMLResponseXml() {
@@ -1102,11 +1102,11 @@ public class SamlResponse {
 		} else {
 			xml = samlResponseString;
 		}
-		return xml; 
+		return xml;
 	}
 
 	/**
-	 * @return the SAMLResponse Document, If the Assertion of the SAMLResponse was encrypted,  
+	 * @return the SAMLResponse Document, If the Assertion of the SAMLResponse was encrypted,
 	 *         returns the Document with the assertion decrypted
 	 */
 	protected Document getSAMLResponseDocument() {

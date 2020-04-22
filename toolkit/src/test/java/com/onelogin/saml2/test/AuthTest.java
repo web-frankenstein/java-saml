@@ -204,7 +204,7 @@ public class AuthTest {
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.sperrors.properties").build();
-		
+
 		expectedEx.expect(SettingsException.class);
 		expectedEx.expectMessage("Invalid settings: sp_entityId_not_found, sp_acs_not_found, sp_cert_not_found_and_required, contact_not_enought_data, organization_not_enought_data, idp_cert_or_fingerprint_not_found_and_required, idp_cert_not_found_and_required");
 		new Auth(settings, request, response);
@@ -423,6 +423,7 @@ public class AuthTest {
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response1.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
@@ -513,11 +514,12 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://stuff.com/endpoints/endpoints/sls.php"));
+		when(request.getScheme()).thenReturn("http");
 		when(request.getSession()).thenReturn(session);
 
 		String samlRequestEncoded = Util.getFileAsString("data/logout_requests/logout_request_deflated.xml.base64");
-		when(request.getParameterMap()).thenReturn(singletonMap("SAMLRequest", new String[]{samlRequestEncoded}));		
-		
+		when(request.getParameterMap()).thenReturn(singletonMap("SAMLRequest", new String[]{samlRequestEncoded}));
+
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.min.properties").build();
 		Auth auth = new Auth(settings, request, response);
 		assertFalse(auth.isAuthenticated());
@@ -543,9 +545,10 @@ public class AuthTest {
 		HttpSession session = mock(HttpSession.class);
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://stuff.com/endpoints/endpoints/sls.php"));
 		when(request.getSession()).thenReturn(session);
+		when(request.getScheme()).thenReturn("http");
 
 		String samlRequestEncoded = Util.getFileAsString("data/logout_requests/logout_request_deflated.xml.base64");
-		when(request.getParameterMap()).thenReturn(singletonMap("SAMLRequest", new String[]{samlRequestEncoded}));		
+		when(request.getParameterMap()).thenReturn(singletonMap("SAMLRequest", new String[]{samlRequestEncoded}));
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.min.properties").build();
 		Auth auth = new Auth(settings, request, response);
 		assertFalse(auth.isAuthenticated());
@@ -570,7 +573,9 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://stuff.com/endpoints/endpoints/sls.php"));
+		when(request.getScheme()).thenReturn("http");
 		when(request.getSession()).thenReturn(session);
+
 		String relayState = "http://localhost:8080/expected.jsp";
 		String samlRequestEncoded = Util.getFileAsString("data/logout_requests/logout_request_deflated.xml.base64");
 		Map<String, String[]> paramsAsArray = new HashMap<>();
@@ -578,8 +583,8 @@ public class AuthTest {
 		paramsAsArray.put("RelayState", new String[]{relayState});
 		when(request.getParameterMap()).thenReturn(paramsAsArray);
 		when(request.getParameter("RelayState")).thenReturn(relayState);
-		
-		
+
+
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.all.properties").build();
 		settings.setWantMessagesSigned(false);
 		settings.setLogoutResponseSigned(true);
@@ -591,10 +596,10 @@ public class AuthTest {
 		verify(session, times(1)).invalidate();
 		assertTrue(auth.getErrors().isEmpty());
 	}
-	
+
 	/**
 	 * Tests the processSLO methods of Auth
-	 * Case: process LogoutRequest invalid 
+	 * Case: process LogoutRequest invalid
 	 *
 	 * @throws Exception
 	 *
@@ -615,7 +620,7 @@ public class AuthTest {
 		Auth auth = new Auth(settings, request, response);
 		assertFalse(auth.isAuthenticated());
 		assertTrue(auth.getErrors().isEmpty());
-		auth.processSLO();		
+		auth.processSLO();
 		verify(session, times(0)).invalidate();
 		assertFalse(auth.getErrors().isEmpty());
 		assertTrue(auth.getErrors().contains("invalid_logout_request"));
@@ -637,6 +642,7 @@ public class AuthTest {
 		HttpSession session = mock(HttpSession.class);
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://stuff.com/endpoints/endpoints/sls.php"));
 		when(request.getSession()).thenReturn(session);
+		when(request.getScheme()).thenReturn("http");
 
 		String samlResponseEncoded = Util.getFileAsString("data/logout_responses/logout_response_deflated.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
@@ -663,6 +669,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://stuff.com/endpoints/endpoints/sls.php"));
+		when(request.getScheme()).thenReturn("http");
 		when(request.getSession()).thenReturn(session);
 
 		String samlResponseEncoded = Util.getFileAsString("data/logout_responses/logout_response_deflated.xml.base64");
@@ -719,6 +726,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://stuff.com/endpoints/endpoints/sls.php"));
+		when(request.getScheme()).thenReturn("http");
 		when(request.getSession()).thenReturn(session);
 
 		String samlResponseEncoded = Util.getFileAsString("data/logout_responses/invalids/status_code_responder.xml.base64");
@@ -749,6 +757,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response4.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -801,6 +810,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response1.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -843,6 +853,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response1.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -884,6 +895,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response1.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -891,8 +903,8 @@ public class AuthTest {
 		auth.processResponse();
 		assertFalse(auth.isAuthenticated());
 		assertNull(auth.getNameIdNameQualifier());
-		
-		
+
+
 		samlResponseEncoded = Util.getFileAsString("data/responses/valid_response_with_namequalifier.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		Auth auth2 = new Auth(settings, request, response);
@@ -916,6 +928,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response1.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -923,8 +936,8 @@ public class AuthTest {
 		auth.processResponse();
 		assertFalse(auth.isAuthenticated());
 		assertNull(auth.getNameIdSPNameQualifier());
-		
-		
+
+
 		samlResponseEncoded = Util.getFileAsString("data/responses/valid_response_with_namequalifier.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		Auth auth2 = new Auth(settings, request, response);
@@ -933,7 +946,7 @@ public class AuthTest {
 		assertTrue(auth2.isAuthenticated());
 		assertEquals(settings.getSpEntityId(), auth2.getNameIdSPNameQualifier());
 	}
-	
+
 	/**
 	 * Tests the getNameId method of SamlResponse
 	 *
@@ -993,6 +1006,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response1.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -1017,6 +1031,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/valid_response.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -1040,6 +1055,7 @@ public class AuthTest {
 		String samlResponseEncoded = Util.getFileAsString("data/responses/response1.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/java-saml-jspsample/acs.jsp"));
+		when(request.getScheme()).thenReturn("http");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
 		Auth auth = new Auth(settings, request, response);
@@ -1074,7 +1090,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
@@ -1102,7 +1118,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
@@ -1176,7 +1192,7 @@ public class AuthTest {
 		String relayState = "http://localhost:8080/expected.jsp";
 		target = auth.login(relayState, false, false, false, true);
 		assertThat(target, startsWith("https://pitbulk.no-ip.org/simplesaml/saml2/idp/SSOService.php?SAMLRequest="));
-		assertThat(target, containsString("&RelayState=http%3A%2F%2Flocalhost%3A8080%2Fexpected.jsp"));		
+		assertThat(target, containsString("&RelayState=http%3A%2F%2Flocalhost%3A8080%2Fexpected.jsp"));
 	}
 
 	/**
@@ -1245,7 +1261,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.min.properties").build();
@@ -1256,7 +1272,7 @@ public class AuthTest {
 		expectedEx.expectMessage("Invalid settings: sp_cert_not_found_and_required");
 		Auth auth = new Auth(settings, request, response);
 	}
-	
+
 	/**
 	 * Tests the login method of Auth
 	 * Case: Signed Login
@@ -1274,7 +1290,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
@@ -1308,7 +1324,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
@@ -1337,7 +1353,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
@@ -1399,7 +1415,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
@@ -1409,13 +1425,13 @@ public class AuthTest {
 		String target = auth.logout("", null, null, true);
 		assertThat(target, startsWith("https://pitbulk.no-ip.org/simplesaml/saml2/idp/SingleLogoutService.php?SAMLRequest="));
 		assertThat(target, not(containsString("&RelayState=")));
-		
+
 		String relayState = "http://localhost:8080/expected.jsp";
 		target = auth.logout(relayState, null, null, true);
 		assertThat(target, startsWith("https://pitbulk.no-ip.org/simplesaml/saml2/idp/SingleLogoutService.php?SAMLRequest="));
 		assertThat(target, containsString("&RelayState=http%3A%2F%2Flocalhost%3A8080%2Fexpected.jsp"));
 	}
-	
+
 	/**
 	 * Tests the logout method of Auth
 	 * Case: Signed Logout but no sp key
@@ -1433,7 +1449,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.min.properties").build();
@@ -1444,7 +1460,7 @@ public class AuthTest {
 		expectedEx.expectMessage("Invalid settings: sp_cert_not_found_and_required");
 		Auth auth = new Auth(settings, request, response);
 	}
-	
+
 	/**
 	 * Tests the logout method of Auth
 	 * Case: Signed Logout
@@ -1462,7 +1478,7 @@ public class AuthTest {
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		when(request.getScheme()).thenReturn("http");
 		when(request.getServerPort()).thenReturn(8080);
-		when(request.getServerName()).thenReturn("localhost");		
+		when(request.getServerName()).thenReturn("localhost");
 		when(request.getRequestURI()).thenReturn("/initial.jsp");
 
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.my.properties").build();
@@ -1497,7 +1513,7 @@ public class AuthTest {
 		String signAlgorithm = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
 
 		Auth auth = new Auth("config/config.invalidspcertstring.properties");
-		
+
 		expectedEx.expect(SettingsException.class);
 		expectedEx.expectMessage("Trying to sign the SAMLRequest but can't load the SP private key");
 		auth.buildRequestSignature(deflatedEncodedAuthNRequest, relayState, signAlgorithm);
@@ -1531,7 +1547,7 @@ public class AuthTest {
 
 	/**
 	 * Tests the buildRequestSignature method
-	 * Case DsaSha1. Alg. not supported 
+	 * Case DsaSha1. Alg. not supported
 	 *
 	 * @throws IOException
 	 * @throws URISyntaxException
@@ -1549,7 +1565,7 @@ public class AuthTest {
 		Auth auth = new Auth("config/config.certstring.properties");
 		String signature = auth.buildRequestSignature(deflatedEncodedAuthNRequest, relayState, signAlgorithm);
 	}
-	
+
 	/**
 	 * Tests the buildRequestSignature method
 	 * Case RsaSha256
@@ -1572,7 +1588,7 @@ public class AuthTest {
 		String expectedSignature = "PJoiwvBgKnRefzaYMaPqOTvlia7EhFoRrc+tFlJCi557VEpG0oY1x8YTmkOxC+oI0zWyQ0RiXA65q7hv1xyYgGnSFdMKr5s+qeD4+1BjPxEGwXVU6+gTX0gg2+UL+1o4YpoVTQ1aKSO85uyBEGO20WnK2zETuGA/Wgl1VBSxNSw=";
 		assertEquals(expectedSignature, signature);
 	}
-	
+
 	/**
 	 * Tests the buildRequestSignature method
 	 * Case RsaSha384
@@ -1595,7 +1611,7 @@ public class AuthTest {
 		String expectedSignature = "rO7eswxuPsk/QPDLaZRHziTx8ndVXMDMfEsJI6ZSQDqVo0ZaHgOJJ8GC8UWcJrGg2qFrsl2mTozMh1Iqi5oBb2GSWTEC/WRAb/qnNi/02yLrLtoop1YfXb7yl0StpXoM0MwWeoPBroEyqdK+qcu2eWSOwrogffepVfcgghtUwo0=";
 		assertEquals(expectedSignature, signature);
 	}
-	
+
 	/**
 	 * Tests the buildRequestSignature method
 	 * Case RsaSha512
@@ -1610,7 +1626,7 @@ public class AuthTest {
 	@Test
 	public void testBuildRequestSignatureRsaSha512() throws URISyntaxException, IOException, SettingsException, Error {
 		String deflatedEncodedAuthNRequest = Util.getFileAsString("data/requests/authn_request.xml.deflated.base64");
-		String relayState = "http://example.com";		
+		String relayState = "http://example.com";
 		String signAlgorithm = Constants.RSA_SHA512;
 
 		Auth auth = new Auth("config/config.certstring.properties");
@@ -1647,7 +1663,7 @@ public class AuthTest {
 
 	/**
 	 * Tests the buildResponseSignature method
-	 * Case DsaSha1. Alg. not supported 
+	 * Case DsaSha1. Alg. not supported
 	 *
 	 * @throws IOException
 	 * @throws URISyntaxException
@@ -1665,7 +1681,7 @@ public class AuthTest {
 		Auth auth = new Auth("config/config.certstring.properties");
 		String signature = auth.buildResponseSignature(deflatedEncodedLogoutResponse, relayState, signAlgorithm);
 	}
-	
+
 	/**
 	 * Tests the buildResponseSignature method
 	 * Case RsaSha256
@@ -1688,7 +1704,7 @@ public class AuthTest {
 		String expectedSignature = "XcEbaZ6BsmaHwDedzLu/t1lKr3I2Qu4ctIZKqz8OFSPGoZh40gLIPX4RBl71Fv6uFdf9xCyXxI27xoC1CV23xNZsWjK89502xcy3vPQvTWo03r9WA92Gu1+/d1JIpE5xX2xBBjLlOxwdi/aYhTHtzo0PChI2zjL5nkziM/uIv2E=";
 		assertEquals(expectedSignature, signature);
 	}
-	
+
 	/**
 	 * Tests the buildResponseSignature method
 	 * Case RsaSha384
@@ -1711,7 +1727,7 @@ public class AuthTest {
 		String expectedSignature = "R+maoS+UmFkiPu0kkwqz2WnkPfMA9upqWVwvVhTQvhrmmc3Gcfm77cAyjnDilFYwKx4xfQhO9PTqd0zviPRx8F+9VaiVKrmEloKfQuHGB1IjdtP8S8X9YRk+dXoegZAFvr9lmrcB9qP6xn1QW3NeMLgRCvWSWa82CBtrvT9K5Ko=";
 		assertEquals(expectedSignature, signature);
 	}
-	
+
 	/**
 	 * Tests the buildResponseSignature method
 	 * Case RsaSha512
@@ -1726,7 +1742,7 @@ public class AuthTest {
 	@Test
 	public void testBuildResponseSignatureRsaSha512() throws URISyntaxException, IOException, SettingsException, Error {
 		String deflatedEncodedLogoutResponse = Util.getFileAsString("data/logout_responses/logout_response_deflated.xml.base64");
-		String relayState = "http://example.com";		
+		String relayState = "http://example.com";
 		String signAlgorithm = Constants.RSA_SHA512;
 
 		Auth auth = new Auth("config/config.certstring.properties");
@@ -1734,7 +1750,7 @@ public class AuthTest {
 		String expectedSignature = "FUxepHZ0j7YWbZYrbXsgebGg37Ne4d7grp/Jdk8j/vvgbOplyyhgsEUzt5K9+7B3OGM+rN5YFHcz5EbCtBfXugy+RJLa893Ih6oKr0wRoOh3/79EGKmnzR1aUyDguhNUuQW0AG3/Fz+CzrKL9HK6+im6F/6YwOVRT7FzBsZxtXs=";
 		assertEquals(expectedSignature, signature);
 	}
-	
+
 	/**
 	 * Tests the buildSignature method
 	 *
@@ -1749,7 +1765,7 @@ public class AuthTest {
 	public void testBuildSignature() throws URISyntaxException, IOException, SettingsException, Error {
 		String deflatedEncodedAuthNRequest = Util.getFileAsString("data/requests/authn_request.xml.deflated.base64");
 		String deflatedEncodedLogoutResponse = Util.getFileAsString("data/logout_responses/logout_response_deflated.xml.base64");
-		String relayState = "http://example.com";		
+		String relayState = "http://example.com";
 		String signAlgorithm = Constants.RSA_SHA1;
 
 		Auth auth = new Auth("config/config.certstring.properties");
@@ -1847,7 +1863,7 @@ public class AuthTest {
 	 * Tests the getLastRequestXML method
 	 * Case We can get most recently processed LogoutRequest
 	 *
-	 * @throws Exception 
+	 * @throws Exception
 	 *
 	 * @see com.onelogin.saml2.Auth#getLastRequestXML
 	 */
@@ -1871,7 +1887,7 @@ public class AuthTest {
 	 * Case We can get most recently processed SAML Response
 	 *
 	 * @throws Exception
-	 * 
+	 *
 	 * @see com.onelogin.saml2.Auth#getLastResponseXML
 	 */
 	@Test
@@ -1887,7 +1903,7 @@ public class AuthTest {
 		auth.processResponse();
 		String samlResponseXML =  auth.getLastResponseXML();
 		assertThat(samlResponseXML, containsString("<samlp:Response"));
-		
+
 		samlResponseEncoded = Util.getFileAsString("data/responses/valid_encrypted_assertion.xml.base64");
 		when(request.getParameterMap()).thenReturn(singletonMap("SAMLResponse", new String[]{samlResponseEncoded}));
 		Auth auth2 = new Auth(settings, request, response);
@@ -1901,7 +1917,7 @@ public class AuthTest {
 	 * Tests the getLastResponseXML method
 	 * Case We can get most recently processed LogoutResponse
 	 *
-	 * @throws Exception 
+	 * @throws Exception
 	 *
 	 * @see com.onelogin.saml2.Auth#getLastResponseXML
 	 */
@@ -1925,7 +1941,7 @@ public class AuthTest {
 	 * Tests the getLastResponseXML method
 	 * Case We can get most recently processed LogoutResponse
 	 *
-	 * @throws Exception 
+	 * @throws Exception
 	 *
 	 * @see com.onelogin.saml2.Auth#getLastResponseXML
 	 */

@@ -130,14 +130,14 @@ public class ServletUtilsTest {
     public void testSendRedirectStay() throws IOException {
         HttpServletResponse response = mock(HttpServletResponse.class);
         Map<String, String> parameters = new HashMap<String, String>();
-        
+
         String url = ServletUtils.sendRedirect(response, "http://example.com/expectedurl.jsp", parameters, true);
         assertEquals("http://example.com/expectedurl.jsp", url);
-        
+
         url = ServletUtils.sendRedirect(response, "http://example.com/expectedurl.jsp?idpid=ffee-aabbb", singletonMap("SAMLRequest", "data"), true);
         assertEquals("http://example.com/expectedurl.jsp?idpid=ffee-aabbb&SAMLRequest=data", url);
     }
-    
+
     /**
      * Tests the getSelfURLhost method
      *
@@ -182,10 +182,10 @@ public class ServletUtilsTest {
     @Test
     public void testIsHTTPS() {
         HttpServletRequest request_1 = mock(HttpServletRequest.class);
-        when(request_1.isSecure()).thenReturn(false);
+        when(request_1.getScheme()).thenReturn("http");
         assertEquals(false, ServletUtils.isHTTPS(request_1));
 
-        when(request_1.isSecure()).thenReturn(true);
+        when(request_1.getScheme()).thenReturn("https");
         assertEquals(true, ServletUtils.isHTTPS(request_1));
     }
 
@@ -234,6 +234,7 @@ public class ServletUtilsTest {
     public void testGetSelfURLNoQuery() {
         HttpServletRequest request_1 = mock(HttpServletRequest.class);
         StringBuffer url = new StringBuffer("http://example.com/test");
+        when(request_1.getScheme()).thenReturn("http");
         when(request_1.getRequestURL()).thenReturn(url);
         assertEquals("http://example.com/test", ServletUtils.getSelfURLNoQuery(request_1));
     }
@@ -265,6 +266,7 @@ public class ServletUtilsTest {
 
         final HttpServletRequest servletRequest = mock(HttpServletRequest.class);
         when(servletRequest.getRequestURL()).thenReturn(new StringBuffer(url));
+        when(servletRequest.getScheme()).thenReturn("http");
         when(servletRequest.getParameterMap()).thenReturn(paramAsArray);
 
         final String barNaiveEncoded = NaiveUrlEncoder.encode("bar"); //must differ from normal url encode
