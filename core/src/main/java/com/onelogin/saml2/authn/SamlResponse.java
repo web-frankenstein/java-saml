@@ -124,8 +124,8 @@ public class SamlResponse {
 	 * @throws ValidationError
 	 */
 	public void loadXmlFromBase64(String responseStr) throws ParserConfigurationException, XPathExpressionException, SAXException, IOException, SettingsException, ValidationError {
-//		samlResponseString = new String(Util.base64decoder(responseStr), "UTF-8");
-		samlResponseDocument = Util.loadXML(responseStr);
+		samlResponseString = new String(Util.base64decoder(responseStr), "UTF-8");
+		samlResponseDocument = Util.loadXML(samlResponseString);
 
 		if (samlResponseDocument == null) {
 			throw new ValidationError("SAML Response could not be processed", ValidationError.INVALID_XML_FORMAT);
