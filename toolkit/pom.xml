@@ -12,14 +12,14 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.onelogin</groupId>
+			<groupId>com.rs2.onelogin</groupId>
 			<artifactId>java-saml-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<!-- for test -->
 		<dependency>
-			<groupId>com.onelogin</groupId>
+			<groupId>com.rs2.onelogin</groupId>
 			<artifactId>java-saml-core</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
