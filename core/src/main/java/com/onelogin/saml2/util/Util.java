@@ -41,6 +41,7 @@ import java.util.zip.Inflater;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -59,6 +60,9 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathFactoryConfigurationException;
 
+import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
+import com.azure.security.keyvault.keys.cryptography.models.KeyWrapAlgorithm;
+import com.onelogin.saml2.model.HSM;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -100,11 +104,11 @@ import com.onelogin.saml2.model.SamlResponseStatus;
 public final class Util {
 
 	/**
-     * Private property to construct a logger for this class.
-     */
+	 * Private property to construct a logger for this class.
+	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
 
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(DateTimeZone.UTC);
+	private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(DateTimeZone.UTC);
 	private static final DateTimeFormatter DATE_TIME_FORMAT_MILLS = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(DateTimeZone.UTC);
 	public static final String UNIQUE_ID_PREFIX = "ONELOGIN_";
 	public static final String RESPONSE_SIGNATURE_XPATH = "/samlp:Response/ds:Signature";
@@ -118,7 +122,7 @@ public final class Util {
 	}
 
 	private Util() {
-	      //not called
+		//not called
 	}
 
 	/**
@@ -666,13 +670,13 @@ public final class Util {
 		}
 
 		try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            copyBytes(new BufferedInputStream(is), bytes);
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			copyBytes(new BufferedInputStream(is), bytes);
 
-            return bytes.toString("utf-8");
-        } finally {
-            is.close();
-        }
+			return bytes.toString("utf-8");
+		} finally {
+			is.close();
+		}
 	}
 
 	private static void copyBytes(InputStream is, OutputStream bytes) throws IOException {
@@ -701,17 +705,17 @@ public final class Util {
 		// Inflater
 		try {
 			Inflater decompresser = new Inflater(true);
-		    decompresser.setInput(decoded);
-		    byte[] result = new byte[1024];
-		    String inflated = "";
-		    long limit = 0;
-		    while(!decompresser.finished() && limit < 150) {
-		    	int resultLength = decompresser.inflate(result);
-		    	limit += 1;
-		    	inflated += new String(result, 0, resultLength, "UTF-8");
-		    }
-		    decompresser.end();
-		    return inflated;
+			decompresser.setInput(decoded);
+			byte[] result = new byte[1024];
+			String inflated = "";
+			long limit = 0;
+			while(!decompresser.finished() && limit < 150) {
+				int resultLength = decompresser.inflate(result);
+				limit += 1;
+				inflated += new String(result, 0, resultLength, "UTF-8");
+			}
+			decompresser.end();
+			return inflated;
 		} catch (Exception e) {
 			return new String(decoded);
 		}
@@ -844,16 +848,16 @@ public final class Util {
 	 * @throws SignatureException
 	 */
 	public static byte[] sign(String text, PrivateKey key, String signAlgorithm) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        if (signAlgorithm == null) {
-        	signAlgorithm = Constants.RSA_SHA1;
-        }
+		if (signAlgorithm == null) {
+			signAlgorithm = Constants.RSA_SHA1;
+		}
 
-        Signature instance = Signature.getInstance(signatureAlgConversion(signAlgorithm));
-        instance.initSign(key);
-        instance.update(text.getBytes());
-        byte[] signature = instance.sign();
+		Signature instance = Signature.getInstance(signatureAlgConversion(signAlgorithm));
+		instance.initSign(key);
+		instance.update(text.getBytes());
+		byte[] signature = instance.sign();
 
-        return signature;
+		return signature;
 	}
 
 	/**
@@ -940,21 +944,21 @@ public final class Util {
 	}
 
 	/**
-     * Validate signature (Metadata).
-     *
-     * @param doc
-     *               The document we should validate
-     * @param cert
-     *               The public certificate
-     * @param fingerprint
-     *               The fingerprint of the public certificate
-     * @param alg
-     *               The signature algorithm method
-     *
-     * @return True if the sign is valid, false otherwise.
-     */
-    public static Boolean validateMetadataSign(Document doc, X509Certificate cert, String fingerprint, String alg) {
-        NodeList signNodesToValidate;
+	 * Validate signature (Metadata).
+	 *
+	 * @param doc
+	 *               The document we should validate
+	 * @param cert
+	 *               The public certificate
+	 * @param fingerprint
+	 *               The fingerprint of the public certificate
+	 * @param alg
+	 *               The signature algorithm method
+	 *
+	 * @return True if the sign is valid, false otherwise.
+	 */
+	public static Boolean validateMetadataSign(Document doc, X509Certificate cert, String fingerprint, String alg) {
+		NodeList signNodesToValidate;
 		try {
 			signNodesToValidate = query(doc, "/md:EntitiesDescriptor/ds:Signature");
 
@@ -979,7 +983,7 @@ public final class Util {
 			LOGGER.warn("Failed to find signature nodes", e);
 		}
 		return false;
-    }
+	}
 
 	/**
 	 * Validate signature of the Node.
@@ -1069,34 +1073,7 @@ public final class Util {
 			XMLCipher xmlCipher = XMLCipher.getInstance();
 			xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
 
-			/* Check if we have encryptedData with a KeyInfo that contains a RetrievalMethod to obtain the EncryptedKey.
-			   xmlCipher is not able to handle that so we move the EncryptedKey inside the KeyInfo element and
-			   replacing the RetrievalMethod.
-			*/
-
-			NodeList keyInfoInEncData = encryptedDataElement.getElementsByTagNameNS(Constants.NS_DS, "KeyInfo");
-			if (keyInfoInEncData.getLength() == 0) {
-				throw new ValidationError("No KeyInfo inside EncryptedData element", ValidationError.KEYINFO_NOT_FOUND_IN_ENCRYPTED_DATA);
-			}
-
-			NodeList childs = keyInfoInEncData.item(0).getChildNodes();
-			for (int i=0; i < childs.getLength(); i++) {
-				if (childs.item(i).getLocalName() != null && childs.item(i).getLocalName().equals("RetrievalMethod")) {
-					Element retrievalMethodElem = (Element)childs.item(i);
-					if (!retrievalMethodElem.getAttribute("Type").equals("http://www.w3.org/2001/04/xmlenc#EncryptedKey")) {
-						throw new ValidationError("Unsupported Retrieval Method found", ValidationError.UNSUPPORTED_RETRIEVAL_METHOD);
-					}
-
-					String uri = retrievalMethodElem.getAttribute("URI").substring(1);
-
-					NodeList encryptedKeyNodes = ((Element) encryptedDataElement.getParentNode()).getElementsByTagNameNS(Constants.NS_XENC, "EncryptedKey");
-					for (int j=0; j < encryptedKeyNodes.getLength(); j++) {
-						if (((Element)encryptedKeyNodes.item(j)).getAttribute("Id").equals(uri)) {
-							keyInfoInEncData.item(0).replaceChild(encryptedKeyNodes.item(j), childs.item(i));
-						}
-					}
-				}
-			}
+			validateEncryptedData(encryptedDataElement);
 
 			xmlCipher.setKEK(inputKey);
 			xmlCipher.doFinal(encryptedDataElement.getOwnerDocument(), encryptedDataElement, false);
@@ -1106,28 +1083,96 @@ public final class Util {
 	}
 
 	/**
+	 * Decrypts the encrypted element using an HSM.
+	 *
+	 * @param encryptedDataElement The encrypted element.
+	 * @param hsm The HSM object.
+	 *
+	 * @throws Exception
+	 */
+	public static void decryptUsingHsm(Element encryptedDataElement, HSM hsm) throws Exception {
+		validateEncryptedData(encryptedDataElement);
+
+		XMLCipher xmlCipher = XMLCipher.getInstance();
+		xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
+
+		CryptographyClient hsmClient = hsm.getHSMClient();
+
+		NodeList encryptedKeyNodes = ((Element) encryptedDataElement.getParentNode()).getElementsByTagNameNS(Constants.NS_XENC, "EncryptedKey");
+		EncryptedKey encryptedKey = xmlCipher.loadEncryptedKey((Element) encryptedKeyNodes.item(0));
+		byte[] encryptedBytes = base64decoder(encryptedKey.getCipherData().getCipherValue().getValue());
+
+		byte[] decryptedKey = hsmClient.unwrapKey(KeyWrapAlgorithm.fromString("RSA1_5"), encryptedBytes).getKey();
+
+		SecretKey encryptionKey = new SecretKeySpec(decryptedKey, 0, decryptedKey.length, "AES");
+
+		xmlCipher.init(XMLCipher.DECRYPT_MODE, encryptionKey);
+		xmlCipher.setKEK(encryptionKey);
+		xmlCipher.doFinal(encryptedDataElement.getOwnerDocument(), encryptedDataElement, false);
+	}
+
+	/**
+	 * Validates the encrypted data and checks whether it contains a retrieval
+	 * method to obtain the encrypted key or not.
+	 *
+	 * @param encryptedDataElement The encrypted element.
+	 *
+	 * @throws ValidationError
+	 */
+	private static void validateEncryptedData(Element encryptedDataElement) throws ValidationError {
+        /* Check if we have encryptedData with a KeyInfo that contains a RetrievalMethod to obtain the EncryptedKey.
+           xmlCipher is not able to handle that so we move the EncryptedKey inside the KeyInfo element and
+           replacing the RetrievalMethod.
+        */
+
+		NodeList keyInfoInEncData = encryptedDataElement.getElementsByTagNameNS(Constants.NS_DS, "KeyInfo");
+		if (keyInfoInEncData.getLength() == 0) {
+			throw new ValidationError("No KeyInfo inside EncryptedData element", ValidationError.KEYINFO_NOT_FOUND_IN_ENCRYPTED_DATA);
+		}
+
+		NodeList childs = keyInfoInEncData.item(0).getChildNodes();
+		for (int i=0; i < childs.getLength(); i++) {
+			if (childs.item(i).getLocalName() != null && childs.item(i).getLocalName().equals("RetrievalMethod")) {
+				Element retrievalMethodElem = (Element)childs.item(i);
+				if (!retrievalMethodElem.getAttribute("Type").equals("http://www.w3.org/2001/04/xmlenc#EncryptedKey")) {
+					throw new ValidationError("Unsupported Retrieval Method found", ValidationError.UNSUPPORTED_RETRIEVAL_METHOD);
+				}
+
+				String uri = retrievalMethodElem.getAttribute("URI").substring(1);
+
+				NodeList encryptedKeyNodes = ((Element) encryptedDataElement.getParentNode()).getElementsByTagNameNS(Constants.NS_XENC, "EncryptedKey");
+				for (int j=0; j < encryptedKeyNodes.getLength(); j++) {
+					if (((Element)encryptedKeyNodes.item(j)).getAttribute("Id").equals(uri)) {
+						keyInfoInEncData.item(0).replaceChild(encryptedKeyNodes.item(j), childs.item(i));
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Clone a Document object.
 	 *
 	 * @param source
 	 * 				 The Document object to be cloned.
 	 *
- 	 * @return the clone of the Document object
- 	 *
+	 * @return the clone of the Document object
+	 *
 	 * @throws ParserConfigurationException
 	 */
 	public static Document copyDocument(Document source) throws ParserConfigurationException
 	{
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-	  	dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
+		dbf.setNamespaceAware(true);
+		DocumentBuilder db = dbf.newDocumentBuilder();
 
-        Node originalRoot = source.getDocumentElement();
+		Node originalRoot = source.getDocumentElement();
 
-        Document copiedDocument = db.newDocument();
-        Node copiedRoot = copiedDocument.importNode(originalRoot, true);
-        copiedDocument.appendChild(copiedRoot);
+		Document copiedDocument = db.newDocument();
+		Node copiedRoot = copiedDocument.importNode(originalRoot, true);
+		copiedDocument.appendChild(copiedRoot);
 
-        return copiedDocument;
+		return copiedDocument;
 	}
 
 	/**
@@ -1279,7 +1324,7 @@ public final class Util {
 		}
 
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-	  	dbf.setNamespaceAware(true);
+		dbf.setNamespaceAware(true);
 		Document doc = dbf.newDocumentBuilder().newDocument();
 		Node newNode = doc.importNode(node, true);
 		doc.appendChild(newNode);
@@ -1447,8 +1492,8 @@ public final class Util {
 	public static String generateNameId(String value, String spnq, String format, String nq, X509Certificate cert) {
 		String res = null;
 		try {
-		  	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		  	dbf.setNamespaceAware(true);
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setNamespaceAware(true);
 			Document doc = dbf.newDocumentBuilder().newDocument();
 			Element nameId = doc.createElement("saml:NameID");
 
@@ -1762,6 +1807,4 @@ public final class Util {
 			throw new IllegalStateException(e);
 		}
 	}
-
-
 }

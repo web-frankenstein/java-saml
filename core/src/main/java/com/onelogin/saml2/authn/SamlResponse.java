@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.onelogin.saml2.model.HSM;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.slf4j.Logger;
@@ -93,15 +94,10 @@ public class SamlResponse {
 	 * @param request
 	 *				the HttpRequest object to be processed (Contains GET and POST parameters, request URL, ...).
 	 *
-	 * @throws ValidationError
-	 * @throws SettingsException
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws ParserConfigurationException
-	 * @throws XPathExpressionException
+	 * @throws Exception
      *
 	 */
-	public SamlResponse(Saml2Settings settings, HttpRequest request) throws XPathExpressionException, ParserConfigurationException, SAXException, IOException, SettingsException, ValidationError {
+	public SamlResponse(Saml2Settings settings, HttpRequest request) throws Exception {
 		this.settings = settings;
 
 		if (request != null) {
@@ -116,14 +112,9 @@ public class SamlResponse {
 	 * @param responseStr
 	 *              Saml2Settings object. Setting data
 	 *
-	 * @throws ParserConfigurationException
-	 * @throws SettingsException
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws XPathExpressionException
-	 * @throws ValidationError
+	 * @throws Exception
 	 */
-	public void loadXmlFromBase64(String responseStr) throws ParserConfigurationException, XPathExpressionException, SAXException, IOException, SettingsException, ValidationError {
+	public void loadXmlFromBase64(String responseStr) throws Exception {
 		samlResponseString = new String(Util.base64decoder(responseStr), "UTF-8");
 		samlResponseDocument = Util.loadXML(samlResponseString);
 
@@ -1054,17 +1045,12 @@ public class SamlResponse {
 	 *
 	 * @return Decrypted Assertion.
 	 *
-	 * @throws XPathExpressionException
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws ParserConfigurationException
-	 * @throws SettingsException
-	 * @throws ValidationError
+	 * @throws Exception
 	 */
-	private Document decryptAssertion(Document dom) throws XPathExpressionException, ParserConfigurationException, SAXException, IOException, SettingsException, ValidationError {
+	private Document decryptAssertion(Document dom) throws Exception {
 		PrivateKey key = settings.getSPkey();
 
-		if (key == null) {
+		if (this.settings.getHsm() == null && key == null) {
 			throw new SettingsException("No private key available for decrypt, check settings", SettingsException.PRIVATE_KEY_NOT_FOUND);
 		}
 
@@ -1073,7 +1059,14 @@ public class SamlResponse {
 		    throw new ValidationError("No /samlp:Response/saml:EncryptedAssertion/xenc:EncryptedData element found", ValidationError.MISSING_ENCRYPTED_ELEMENT);
 		}
 		Element encryptedData = (Element) encryptedDataNodes.item(0);
-		Util.decryptElement(encryptedData, key);
+
+		HSM hsm = this.settings.getHsm();
+		if (hsm != null) {
+			Util.decryptUsingHsm(encryptedData, hsm);
+		} else {
+			Util.decryptElement(encryptedData, key);
+		}
+
 
 		// We need to Remove the saml:EncryptedAssertion Node
 		NodeList AssertionDataNodes = Util.query(dom, "/samlp:Response/saml:EncryptedAssertion/saml:Assertion");

@@ -9,7 +9,7 @@
         <saml:Subject>
             <saml:NameID SPNameQualifier="hello.com" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">someone@example.com</saml:NameID>
             <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
-                <saml:SubjectConfirmationData NotOnOrAfter="2020-06-17T14:59:14Z" Recipient="http://localhost:8080/java-saml-jspsample/acs.jsp"/>
+                <saml:SubjectConfirmationData NotOnOrAfter="2025-06-17T14:59:14Z" Recipient="http://localhost:8080/java-saml-jspsample/acs.jsp"/>
             </saml:SubjectConfirmation>
         </saml:Subject>
         <saml:Conditions NotBefore="2010-06-17T14:53:44Z" NotOnOrAfter="2021-06-17T14:59:14Z">

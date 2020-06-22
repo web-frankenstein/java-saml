@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.onelogin.saml2.model.HSM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -23,7 +24,7 @@ import com.onelogin.saml2.util.Util;
  * Saml2Settings class of OneLogin's Java Toolkit.
  *
  * A class that implements the settings handler
- */ 
+ */
 public class Saml2Settings {
 	/**
      * Private property to construct a logger for this class.
@@ -33,7 +34,7 @@ public class Saml2Settings {
 	// Toolkit settings
 	private boolean strict = true;
 	private boolean debug = false;
-	
+
 	// SP
 	private String spEntityId = "";
 	private URL spAssertionConsumerServiceUrl = null;
@@ -43,6 +44,7 @@ public class Saml2Settings {
 	private String spNameIDFormat = Constants.NAMEID_UNSPECIFIED;
 	private X509Certificate spX509cert = null;
 	private PrivateKey spPrivateKey = null;
+	private HSM hsm = null;
 
 	// IdP
 	private String idpEntityId = "";
@@ -84,7 +86,7 @@ public class Saml2Settings {
 	private Organization organization = null;
 
 	private boolean spValidationOnly = false;
-	
+
 	/**
 	 * @return the strict setting value
 	 */
@@ -277,7 +279,7 @@ public class Saml2Settings {
 	public boolean getWantNameId() {
 		return wantNameId;
 	}
-	
+
 	/**
 	 * @return the wantNameIdEncrypted setting value
 	 */
@@ -349,15 +351,22 @@ public class Saml2Settings {
 	}
 
 	/**
+	 * @return The HSM setting value.
+	 */
+	public HSM getHsm() {
+		return this.hsm;
+	}
+
+	/**
 	 * @return if the debug is active or not
 	 */
 	public boolean isDebugActive() {
 		return this.debug;
 	}
-	
+
 	/**
 	 * Set the strict setting value
-	 * 
+	 *
 	 * @param strict
 	 *            the strict to be set
 	 */
@@ -373,6 +382,15 @@ public class Saml2Settings {
 	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	/**
+	 * Sets the HSM setting value.
+	 *
+	 * @param hsm The HSM object to be set.
+	 */
+	public void setHsm(HSM hsm) {
+		this.hsm = hsm;
 	}
 
 	/**
@@ -691,7 +709,7 @@ public class Saml2Settings {
 	 * Set the wantXMLValidation setting value
 	 *
 	 * @param wantXMLValidation
-	 *            the wantXMLValidation value to be set. Based on it the SP will validate SAML messages against the XML scheme 
+	 *            the wantXMLValidation value to be set. Based on it the SP will validate SAML messages against the XML scheme
 	 */
 	public void setWantXMLValidation(boolean wantXMLValidation) {
 		this.wantXMLValidation = wantXMLValidation;
@@ -775,7 +793,7 @@ public class Saml2Settings {
 
 	/**
 	 * Set contacts info that will be listed on the Service Provider metadata
-	 * 
+	 *
 	 * @param contacts
 	 *            the contacts to set
 	 */
@@ -795,21 +813,21 @@ public class Saml2Settings {
 
 	/**
 	 * Checks the settings .
-	 * 
+	 *
 	 * @return errors found on the settings data
 	 */
 	public List<String> checkSettings() {
 		List<String> errors = new ArrayList<>(this.checkSPSettings());
-		if (!spValidationOnly) { 
+		if (!spValidationOnly) {
 			errors.addAll(this.checkIdPSettings());
 		}
 
 		return errors;
 	}
-	
+
 	/**
 	 * Checks the IdP settings .
-	 * 
+	 *
 	 * @return errors found on the IdP settings data
 	 */
 	public List<String> checkIdPSettings() {
@@ -831,11 +849,17 @@ public class Saml2Settings {
 		if (this.getIdpx509cert() == null && !checkRequired(this.getIdpCertFingerprint())) {
 			errorMsg = "idp_cert_or_fingerprint_not_found_and_required";
 			errors.add(errorMsg);
-			LOGGER.error(errorMsg);			
+			LOGGER.error(errorMsg);
 		}
 
-		if (this.getNameIdEncrypted() == true && this.getIdpx509cert() == null) {
+		if (this.getNameIdEncrypted() && this.getIdpx509cert() == null) {
 			errorMsg = "idp_cert_not_found_and_required";
+			errors.add(errorMsg);
+			LOGGER.error(errorMsg);
+		}
+
+		if (this.getHsm() != null && this.getSPkey() != null) {
+			errorMsg = "You should either use an HSM or specify a private key but not both.";
 			errors.add(errorMsg);
 			LOGGER.error(errorMsg);
 		}
@@ -864,12 +888,8 @@ public class Saml2Settings {
 			LOGGER.error(errorMsg);
 		}
 
-		if ((this.getAuthnRequestsSigned() == true ||
-			  this.getLogoutRequestSigned() == true ||
-			  this.getLogoutResponseSigned() == true ||
-			  this.getWantAssertionsEncrypted() == true ||
-			  this.getWantNameIdEncrypted() == true)
-			  && this.checkSPCerts() == false) {
+		if (this.getHsm() == null && (this.getAuthnRequestsSigned() || this.getLogoutRequestSigned()
+			|| this.getLogoutResponseSigned() || this.getWantAssertionsEncrypted() || this.getWantNameIdEncrypted()) && !this.checkSPCerts()) {
 			errorMsg = "sp_cert_not_found_and_required";
 			errors.add(errorMsg);
 			LOGGER.error(errorMsg);
@@ -895,7 +915,7 @@ public class Saml2Settings {
 */
 
 				if (contact.getEmailAddress().isEmpty() || contact.getGivenName().isEmpty()) {
-					errorMsg = "contact_not_enought_data";
+					errorMsg = "contact_not_enough_data";
 					errors.add(errorMsg);
 					LOGGER.error(errorMsg);
 				}
@@ -904,7 +924,7 @@ public class Saml2Settings {
 
 		Organization org = this.getOrganization();
 		if (org != null && (org.getOrgDisplayName().isEmpty() || org.getOrgName().isEmpty() || org.getOrgUrl().isEmpty())) {
-			errorMsg = "organization_not_enought_data";
+			errorMsg = "organization_not_enough_data";
 			errors.add(errorMsg);
 			LOGGER.error(errorMsg);
 		}
@@ -923,7 +943,7 @@ public class Saml2Settings {
 
 		return (cert != null && key != null);
 	}
-	
+
 	/**
 	 * Auxiliary method to check required properties.
 	 *
@@ -966,7 +986,7 @@ public class Saml2Settings {
 	{
 		return this.spValidationOnly;
 	}
-	
+
 	/**
 	 * Gets the SP metadata. The XML representation.
 	 *
@@ -990,22 +1010,22 @@ public class Saml2Settings {
 						this.getSignatureAlgorithm(),
 						this.getDigestAlgorithm()
 				);
-			} catch (Exception e) {				
+			} catch (Exception e) {
 				LOGGER.debug("Error executing signMetadata: " + e.getMessage(), e);
 			}
 		}
 
 		return metadataString;
 	}
-	
+
 	/**
 	 * Validates an XML SP Metadata.
 	 *
 	 * @param metadataString Metadata's XML that will be validate
-	 * 
+	 *
 	 * @return Array The list of found errors
 	 *
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static List<String> validateMetadata(String metadataString) throws Exception {
 
@@ -1045,7 +1065,7 @@ public class Saml2Settings {
 			}
 		}
 		// TODO Validate Sign if required with Util.validateMetadataSign
-		
+
 		return errors;
 	}
 }

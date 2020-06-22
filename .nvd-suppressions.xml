@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
-
+    <suppress>
+        <notes></notes>
+        <filePath regex="true">.*\bazure-core-http-netty-1.5.1\.jar</filePath>
+        <cve>CVE-2015-2156</cve>
+    </suppress>
+    <suppress>
+        <notes></notes>
+        <filePath regex="true">.*\bnetty-tcnative-boringssl-static-2.0.29.Final\.jar</filePath>
+        <cve>CVE-2015-2156</cve>
+    </suppress>
+    <suppress>
+        <notes></notes>
+        <filePath regex="true">.*\breactor-netty-0.9.7.RELEASE\.jar</filePath>
+        <cve>CVE-2015-2156</cve>
+    </suppress>
 </suppressions>

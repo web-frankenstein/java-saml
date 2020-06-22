@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.onelogin.saml2.model.HSM;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
@@ -218,21 +219,49 @@ public class Auth {
 	 * @param response
 	 * 				HttpServletResponse object to be used
 	 *
-	 * @throws SettingsException
 	 */
 	public Auth(Saml2Settings settings, HttpServletRequest request, HttpServletResponse response) throws SettingsException {
 		this.settings = settings;
 		this.request = request;
 		this.response = response;
-		
-		// Check settings
-		List<String> settingsErrors = settings.checkSettings();
+
+		validateSettings();
+	}
+
+	/**
+	 * Initializes the SP SAML instance.
+	 *
+	 * @param hsm The HSM object.
+	 * @param settings Saml2Settings object. Setting data
+	 * @param request HttpServletRequest object to be processed
+	 * @param response HttpServletResponse object to be used
+	 */
+	public Auth(HSM hsm, Saml2Settings settings, HttpServletRequest request, HttpServletResponse response) throws SettingsException {
+		this.settings = settings;
+		this.settings.setHsm(hsm);
+		this.request = request;
+		this.response = response;
+
+		validateSettings();
+	}
+
+	/**
+	 * Validates the SAML settings.
+	 *
+	 * @return whether the settings are correct or not.
+	 *
+	 * @throws SettingsException
+	 */
+	private void validateSettings() throws SettingsException {
+		List<String> settingsErrors = this.settings.checkSettings();
+
 		if (!settingsErrors.isEmpty()) {
 			String errorMsg = "Invalid settings: ";
 			errorMsg += StringUtils.join(settingsErrors, ", ");
 			LOGGER.error(errorMsg);
 			throw new SettingsException(errorMsg, SettingsException.SETTINGS_INVALID);
 		}
+
 		LOGGER.debug("Settings validated");
 	}
 
