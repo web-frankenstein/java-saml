@@ -229,23 +229,6 @@ public class Auth {
 	}
 
 	/**
-	 * Initializes the SP SAML instance.
-	 *
-	 * @param hsm The HSM object.
-	 * @param settings Saml2Settings object. Setting data
-	 * @param request HttpServletRequest object to be processed
-	 * @param response HttpServletResponse object to be used
-	 */
-	public Auth(HSM hsm, Saml2Settings settings, HttpServletRequest request, HttpServletResponse response) throws SettingsException {
-		this.settings = settings;
-		this.settings.setHsm(hsm);
-		this.request = request;
-		this.response = response;
-
-		validateSettings();
-	}
-
-	/**
 	 * Validates the SAML settings.
 	 *
 	 * @return whether the settings are correct or not.

@@ -859,7 +859,7 @@ public class Saml2Settings {
 		}
 
 		if (this.getHsm() != null && this.getSPkey() != null) {
-			errorMsg = "You should either use an HSM or specify a private key but not both.";
+			errorMsg = "use_either_hsm_or_private_key";
 			errors.add(errorMsg);
 			LOGGER.error(errorMsg);
 		}

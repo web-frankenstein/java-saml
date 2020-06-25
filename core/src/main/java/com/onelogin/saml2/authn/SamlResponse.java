@@ -1050,7 +1050,9 @@ public class SamlResponse {
 	private Document decryptAssertion(Document dom) throws Exception {
 		PrivateKey key = settings.getSPkey();
 
-		if (this.settings.getHsm() == null && key == null) {
+		HSM hsm = this.settings.getHsm();
+
+		if (hsm == null && key == null) {
 			throw new SettingsException("No private key available for decrypt, check settings", SettingsException.PRIVATE_KEY_NOT_FOUND);
 		}
 
@@ -1060,7 +1062,6 @@ public class SamlResponse {
 		}
 		Element encryptedData = (Element) encryptedDataNodes.item(0);
 
-		HSM hsm = this.settings.getHsm();
 		if (hsm != null) {
 			Util.decryptUsingHsm(encryptedData, hsm);
 		} else {
