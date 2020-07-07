@@ -1102,7 +1102,7 @@ public final class Util {
 		EncryptedKey encryptedKey = xmlCipher.loadEncryptedKey((Element) encryptedKeyNodes.item(0));
 		byte[] encryptedBytes = base64decoder(encryptedKey.getCipherData().getCipherValue().getValue());
 
-		byte[] decryptedKey = hsmClient.unwrapKey(KeyWrapAlgorithm.fromString("RSA1_5"), encryptedBytes).getKey();
+		byte[] decryptedKey = hsmClient.unwrapKey(KeyWrapAlgorithm.RSA_OAEP, encryptedBytes).getKey();
 
 		SecretKey encryptionKey = new SecretKeySpec(decryptedKey, 0, decryptedKey.length, "AES");
 
