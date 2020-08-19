@@ -667,15 +667,22 @@ public class Auth {
 	 * @throws Exception 
 	 */
 	public void processResponse(String requestId) throws Exception {
+		LOGGER.debug("Starting processing response...");
+
 		authenticated = false;
+		LOGGER.debug("Submitting HTTP request...");
 		final HttpRequest httpRequest = ServletUtils.makeHttpRequest(this.request);
+		LOGGER.debug("Retrieving SAMLResponse parameter...");
 		final String samlResponseParameter = httpRequest.getParameter("SAMLResponse");
 
 		if (samlResponseParameter != null) {
+			LOGGER.debug("Parsing and decrypting SAML response...");
 			SamlResponse samlResponse = new SamlResponse(settings, httpRequest);
+			LOGGER.debug("Retrieving decrypted SAML response...");
 			lastResponse = samlResponse.getSAMLResponseXml();
 
 			if (samlResponse.isValid(requestId)) {
+				LOGGER.debug("Validated SAML response...");
 				nameid = samlResponse.getNameId();
 				nameidFormat = samlResponse.getNameIdFormat();
 				nameidNameQualifier = samlResponse.getNameIdNameQualifier();

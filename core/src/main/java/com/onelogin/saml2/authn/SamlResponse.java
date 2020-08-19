@@ -139,6 +139,7 @@ public class SamlResponse {
 	 * @return if the response is valid or not
 	 */
 	public boolean isValid(String requestId) {
+		LOGGER.debug("Validations - Starting...");
 		error = null;
 
 		try {
@@ -177,7 +178,8 @@ public class SamlResponse {
 			final boolean hasSignedResponse = signedElements.contains(responseTag);
 			final boolean hasSignedAssertion = signedElements.contains(assertionTag);
 
-			if (settings.isStrict()) {
+      		if (settings.isStrict()) {
+				LOGGER.debug("Validations - strict mode...");
 				if (settings.getWantXMLValidation()) {
 					if (!Util.validateXML(samlResponseDocument, SchemaFactory.SAML_SCHEMA_PROTOCOL_2_0)) {
 						throw new ValidationError("Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd", ValidationError.INVALID_XML_FORMAT);
@@ -219,6 +221,7 @@ public class SamlResponse {
 					throw new ValidationError("The Assertion must include a Conditions element", ValidationError.MISSING_CONDITIONS);
 				}
 
+				LOGGER.debug("Validations - Timestamps...");
 				// Validate Assertion timestamps
 				if (!this.validateTimestamps()) {
 					throw new Exception("Timing issues (please check your clock settings)");
@@ -235,12 +238,15 @@ public class SamlResponse {
 					throw new ValidationError("There is an EncryptedAttribute in the Response and this SP does not support them", ValidationError.ENCRYPTED_ATTRIBUTES);
 				}
 
+				LOGGER.debug("Validations - Destination...");
 				// Check destination
 				validateDestination(rootElement);
 
+				LOGGER.debug("Validations - Audiences...");
 				// Check Audiences
 				validateAudiences();
 
+				LOGGER.debug("Validations - Issuers...");
 				// Check the issuers
 				List<String> issuers = this.getIssuers();
 				for (final String issuer : issuers) {
@@ -251,6 +257,7 @@ public class SamlResponse {
 					}
 				}
 
+				LOGGER.debug("Validations - Session Expiration...");
 				// Check the session Expiration
 				DateTime sessionExpiration = this.getSessionNotOnOrAfter();
 				if (sessionExpiration != null) {
@@ -260,6 +267,7 @@ public class SamlResponse {
 					}
 				}
 
+				LOGGER.debug("Validations - Subject Confirmation...");
 				validateSubjectConfirmation(responseInResponseTo);
 
 				if (settings.getWantAssertionsSigned() && !hasSignedAssertion) {
@@ -271,6 +279,7 @@ public class SamlResponse {
 				}
 			}
 
+			LOGGER.debug("Validations - Signing/Verification...");
 			if (signedElements.isEmpty() || (!hasSignedAssertion && !hasSignedResponse)) {
 				throw new ValidationError("No Signature found. SAML Response rejected", ValidationError.NO_SIGNATURE_FOUND);
 			} else {
@@ -289,10 +298,12 @@ public class SamlResponse {
 				String fingerprint = settings.getIdpCertFingerprint();
 				String alg = settings.getIdpCertFingerprintAlgorithm();
 
+				LOGGER.debug("Validations - Signed Response...");
 				if (hasSignedResponse && !Util.validateSign(samlResponseDocument, certList, fingerprint, alg, Util.RESPONSE_SIGNATURE_XPATH)) {
 					throw new ValidationError("Signature validation failed. SAML Response rejected", ValidationError.INVALID_SIGNATURE);
 				}
 
+				LOGGER.debug("Validations - Signed Assertion...");
 				final Document documentToCheckAssertion = encrypted ? decryptedDocument : samlResponseDocument;
 				if (hasSignedAssertion && !Util.validateSign(documentToCheckAssertion, certList, fingerprint, alg, Util.ASSERTION_SIGNATURE_XPATH)) {
 					throw new ValidationError("Signature validation failed. SAML Response rejected", ValidationError.INVALID_SIGNATURE);

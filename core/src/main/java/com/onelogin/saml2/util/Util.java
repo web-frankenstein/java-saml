@@ -1091,21 +1091,25 @@ public final class Util {
 	 * @throws Exception
 	 */
 	public static void decryptUsingHsm(Element encryptedDataElement, HSM hsm) throws Exception {
+		LOGGER.debug("Decryption - Validating encrypted data...");
 		validateEncryptedData(encryptedDataElement);
 
 		XMLCipher xmlCipher = XMLCipher.getInstance();
 		xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
 
+		LOGGER.debug("Decryption - Connecting to HSM...");
 		CryptographyClient hsmClient = hsm.getHSMClient();
 
 		NodeList encryptedKeyNodes = ((Element) encryptedDataElement.getParentNode()).getElementsByTagNameNS(Constants.NS_XENC, "EncryptedKey");
 		EncryptedKey encryptedKey = xmlCipher.loadEncryptedKey((Element) encryptedKeyNodes.item(0));
 		byte[] encryptedBytes = base64decoder(encryptedKey.getCipherData().getCipherValue().getValue());
 
+		LOGGER.debug("Decryption - Unwrapping Key...");
 		byte[] decryptedKey = hsmClient.unwrapKey(KeyWrapAlgorithm.RSA_OAEP, encryptedBytes).getKey();
 
 		SecretKey encryptionKey = new SecretKeySpec(decryptedKey, 0, decryptedKey.length, "AES");
 
+		LOGGER.debug("Decryption - Decrypting...");
 		xmlCipher.init(XMLCipher.DECRYPT_MODE, encryptionKey);
 		xmlCipher.setKEK(encryptionKey);
 		xmlCipher.doFinal(encryptedDataElement.getOwnerDocument(), encryptedDataElement, false);
