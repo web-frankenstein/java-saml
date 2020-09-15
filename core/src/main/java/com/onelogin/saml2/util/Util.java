@@ -60,9 +60,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathFactoryConfigurationException;
 
-import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
-import com.azure.security.keyvault.keys.cryptography.models.KeyWrapAlgorithm;
-import com.onelogin.saml2.model.HSM;
+import com.onelogin.saml2.model.hsm.HSM;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1091,25 +1089,21 @@ public final class Util {
 	 * @throws Exception
 	 */
 	public static void decryptUsingHsm(Element encryptedDataElement, HSM hsm) throws Exception {
-		LOGGER.debug("Decryption - Validating encrypted data...");
 		validateEncryptedData(encryptedDataElement);
 
 		XMLCipher xmlCipher = XMLCipher.getInstance();
 		xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
 
-		LOGGER.debug("Decryption - Connecting to HSM...");
-		CryptographyClient hsmClient = hsm.getHSMClient();
+		hsm.setClient();
 
 		NodeList encryptedKeyNodes = ((Element) encryptedDataElement.getParentNode()).getElementsByTagNameNS(Constants.NS_XENC, "EncryptedKey");
 		EncryptedKey encryptedKey = xmlCipher.loadEncryptedKey((Element) encryptedKeyNodes.item(0));
 		byte[] encryptedBytes = base64decoder(encryptedKey.getCipherData().getCipherValue().getValue());
 
-		LOGGER.debug("Decryption - Unwrapping Key...");
-		byte[] decryptedKey = hsmClient.unwrapKey(KeyWrapAlgorithm.RSA_OAEP, encryptedBytes).getKey();
+		byte[] decryptedKey = hsm.unwrapKey(encryptedKey.getEncryptionMethod().getAlgorithm(), encryptedBytes);
 
 		SecretKey encryptionKey = new SecretKeySpec(decryptedKey, 0, decryptedKey.length, "AES");
 
-		LOGGER.debug("Decryption - Decrypting...");
 		xmlCipher.init(XMLCipher.DECRYPT_MODE, encryptionKey);
 		xmlCipher.setKEK(encryptionKey);
 		xmlCipher.doFinal(encryptedDataElement.getOwnerDocument(), encryptedDataElement, false);

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.onelogin.saml2.model.HSM;
+import com.onelogin.saml2.model.hsm.HSM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -858,12 +858,6 @@ public class Saml2Settings {
 			LOGGER.error(errorMsg);
 		}
 
-		if (this.getHsm() != null && this.getSPkey() != null) {
-			errorMsg = "use_either_hsm_or_private_key";
-			errors.add(errorMsg);
-			LOGGER.error(errorMsg);
-		}
-
 		return errors;
 	}
 
@@ -897,7 +891,7 @@ public class Saml2Settings {
 
 		List<Contact> contacts = this.getContacts();
 		if (!contacts.isEmpty()) {
-/*			
+/*
 			List<String> validTypes = new ArrayList<String>();
 			validTypes.add("technical");
 			validTypes.add("support");
@@ -925,6 +919,12 @@ public class Saml2Settings {
 		Organization org = this.getOrganization();
 		if (org != null && (org.getOrgDisplayName().isEmpty() || org.getOrgName().isEmpty() || org.getOrgUrl().isEmpty())) {
 			errorMsg = "organization_not_enough_data";
+			errors.add(errorMsg);
+			LOGGER.error(errorMsg);
+		}
+
+		if (this.getHsm() != null && this.getSPkey() != null) {
+			errorMsg = "use_either_hsm_or_private_key";
 			errors.add(errorMsg);
 			LOGGER.error(errorMsg);
 		}

@@ -8,10 +8,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThat;
 
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 
+import com.onelogin.saml2.model.hsm.AzureKeyVault;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -38,7 +38,7 @@ public class Saml2SettingsTest {
 	@Test
 	public void testIsStrict() {
 		Saml2Settings settings = new Saml2Settings();
-		
+
 		assertTrue(settings.isStrict());
 		settings.setStrict(false);
 		assertFalse(settings.isStrict());
@@ -55,25 +55,24 @@ public class Saml2SettingsTest {
 	@Test
 	public void testIsDebugActive() {
 		Saml2Settings settings = new Saml2Settings();
-		
+
 		assertFalse(settings.isDebugActive());
 		settings.setDebug(true);
 		assertTrue(settings.isDebugActive());
 		settings.setDebug(false);
 		assertFalse(settings.isDebugActive());
 	}
-	
+
 	/**
 	 * Tests the checkIdPSettings method of the Saml2Settings
 	 * Case: Check that all possible IdP errors are found
 	 *
-	 * @throws IOException
 	 * @throws Error
 	 *
 	 * @see com.onelogin.saml2.settings.Saml2Settings#checkIdPSettings
 	 */
 	@Test
-	public void testCheckIdPSettingsAllErrors() throws IOException, Error {
+	public void testCheckIdPSettingsAllErrors() throws Error {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.idperrors.properties").build();
 		List<String> settingsErrors = settings.checkIdPSettings();
 		assertFalse(settingsErrors.isEmpty());
@@ -87,13 +86,12 @@ public class Saml2SettingsTest {
 	 * Tests the checkIdPSettings method of the Saml2Settings
 	 * Case: No IdP Errors
 	 *
-	 * @throws IOException
 	 * @throws Error
 	 *
 	 * @see com.onelogin.saml2.settings.Saml2Settings#checkIdPSettings
 	 */
 	@Test
-	public void testCheckIdPSettingsOk() throws IOException, Error {
+	public void testCheckIdPSettingsOk() throws Error {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.all.properties").build();
 		List<String> settingsErrors = settings.checkIdPSettings();
 		assertTrue(settingsErrors.isEmpty());
@@ -103,13 +101,12 @@ public class Saml2SettingsTest {
 	 * Tests the checkSPSettings method of the Saml2Settings
 	 * Case: Check that all possible IdP errors are found
 	 *
-	 * @throws IOException
 	 * @throws Error
 	 *
 	 * @see com.onelogin.saml2.settings.Saml2Settings#checkSPSettings
 	 */
 	@Test
-	public void testCheckSPSettingsAllErrors() throws IOException, Error {
+	public void testCheckSPSettingsAllErrors() throws Error {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.sperrors.properties").build();
 		List<String> settingsErrors = settings.checkSPSettings();
 		assertFalse(settingsErrors.isEmpty());
@@ -124,13 +121,12 @@ public class Saml2SettingsTest {
 	 * Tests the checkSPSettings method of the Saml2Settings
 	 * Case: No SP Errors
 	 *
-	 * @throws IOException
 	 * @throws Error
 	 *
 	 * @see com.onelogin.saml2.settings.Saml2Settings#checkSPSettings
 	 */
 	@Test
-	public void testCheckSPSettingsOk() throws IOException, Error {
+	public void testCheckSPSettingsOk() throws Error {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.all.properties").build();
 		List<String> settingsErrors = settings.checkSPSettings();
 		assertTrue(settingsErrors.isEmpty());
@@ -140,13 +136,12 @@ public class Saml2SettingsTest {
 	 * Tests the checkSettings method of the Saml2Settings
 	 * Case: Check that all possible errors are found
 	 *
-	 * @throws IOException
 	 * @throws Error
 	 *
 	 * @see com.onelogin.saml2.settings.Saml2Settings#checkSettings
 	 */
 	@Test
-	public void testCheckSettingsAllErrors() throws IOException, Error {
+	public void testCheckSettingsAllErrors() throws Error {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.allerrors.properties").build();
 		List<String> settingsErrors = settings.checkSettings();
 		assertFalse(settingsErrors.isEmpty());
@@ -165,13 +160,12 @@ public class Saml2SettingsTest {
 	 * Tests the checkSettings method of the Saml2Settings
 	 * Case: Check IdP errors
 	 *
-	 * @throws IOException
 	 * @throws Error
 	 *
 	 * @see com.onelogin.saml2.settings.Saml2Settings#checkSettings
 	 */
 	@Test
-	public void testCheckSettingsIdPErrors() throws IOException, Error {
+	public void testCheckSettingsIdPErrors() throws Error {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.idperrors.properties").build();
 		List<String> settingsErrors = settings.checkSettings();
 		assertFalse(settingsErrors.isEmpty());
@@ -179,26 +173,60 @@ public class Saml2SettingsTest {
 		assertThat(settingsErrors, hasItem("idp_sso_url_invalid"));
 		assertThat(settingsErrors, hasItem("idp_cert_or_fingerprint_not_found_and_required"));
 		assertThat(settingsErrors, hasItem("idp_cert_not_found_and_required"));
-		
+
 		settings.setSPValidationOnly(true);
 		settingsErrors = settings.checkSettings();
 		assertTrue(settingsErrors.isEmpty());
 	}
-	
+
 	/**
 	 * Tests the checkSettings method of the Saml2Settings
 	 * Case: No SP Errors
 	 *
-	 * @throws IOException
 	 * @throws Error
 	 *
 	 * @see com.onelogin.saml2.settings.Saml2Settings#checkSettings
 	 */
 	@Test
-	public void testCheckSettingsOk() throws IOException, Error {
+	public void testCheckSettingsOk() throws Error {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.all.properties").build();
 		List<String> settingsErrors = settings.checkSettings();
 		assertTrue(settingsErrors.isEmpty());
+	}
+
+	/**
+	 * Tests the checkSpSettings() method of the Saml2Settings
+	 * Case: Setting the HSM as part of the SAML settings should not throw the
+	 * sp_cert_not_found_and_required and use_either_hsm_or_private_key errors.
+	 *
+	 * @throws Error
+	 *
+	 * @see com.onelogin.saml2.settings.Saml2Settings#checkSPSettings
+	 */
+	@Test
+	public void testCheckSpSettingsWhenSettingHsm() throws Error {
+		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.hsm.properties").build();
+		settings.setHsm(new AzureKeyVault("", "", "", ""));
+
+		List<String> settingsErrors = settings.checkSettings();
+		assertTrue(settingsErrors.isEmpty());
+	}
+
+	/**
+	 * Tests the checkSpSettings() method of the Saml2Settings
+	 * Case: Setting both the HSM and the private key will throw an error.
+	 *
+	 * @throws Error
+	 *
+	 * @see com.onelogin.saml2.settings.Saml2Settings#checkSPSettings
+	 */
+	@Test
+	public void testCheckSpSettingsWhenSettingBothHsmAndPrivateKey() throws Error {
+		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.all.properties").build();
+		settings.setHsm(new AzureKeyVault("", "", "", ""));
+
+		List<String> settingsErrors = settings.checkSettings();
+		assertThat(settingsErrors, hasItem("use_either_hsm_or_private_key"));
 	}
 
 	/**
@@ -220,16 +248,16 @@ public class Saml2SettingsTest {
 
 		assertEquals("md:EntityDescriptor", metadataDoc.getDocumentElement().getNodeName());
 		assertEquals("md:SPSSODescriptor", metadataDoc.getDocumentElement().getFirstChild().getNodeName());
-		
+
 		assertTrue(Util.validateXML(metadataDoc, SchemaFactory.SAML_SCHEMA_METADATA_2_0));
-		
+
 		assertThat(metadataStr, containsString("<md:SPSSODescriptor"));
 		assertThat(metadataStr, containsString("entityID=\"http://localhost:8080/java-saml-jspsample/metadata.jsp\""));
 		assertThat(metadataStr, containsString("AuthnRequestsSigned=\"false\""));
 		assertThat(metadataStr, containsString("WantAssertionsSigned=\"false\""));
 		assertThat(metadataStr, not(containsString("<md:KeyDescriptor use=\"signing\">")));
 		assertThat(metadataStr, containsString("<md:AssertionConsumerService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\" Location=\"http://localhost:8080/java-saml-jspsample/acs.jsp\" index=\"1\"/>"));
-		assertThat(metadataStr, containsString("<md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"http://localhost:8080/java-saml-jspsample/sls.jsp\"/>")); 
+		assertThat(metadataStr, containsString("<md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"http://localhost:8080/java-saml-jspsample/sls.jsp\"/>"));
 		assertThat(metadataStr, containsString("<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>"));
 	}
 
@@ -252,19 +280,19 @@ public class Saml2SettingsTest {
 
 		assertEquals("md:EntityDescriptor", metadataDoc.getDocumentElement().getNodeName());
 		assertEquals("md:SPSSODescriptor", metadataDoc.getDocumentElement().getFirstChild().getNodeName());
-		
+
 		assertTrue(Util.validateXML(metadataDoc, SchemaFactory.SAML_SCHEMA_METADATA_2_0));
-		
+
 		assertThat(metadataStr, containsString("<md:SPSSODescriptor"));
 		assertThat(metadataStr, containsString("entityID=\"http://localhost:8080/java-saml-jspsample/metadata.jsp\""));
 		assertThat(metadataStr, containsString("AuthnRequestsSigned=\"false\""));
 		assertThat(metadataStr, containsString("WantAssertionsSigned=\"false\""));
 		assertThat(metadataStr, not(containsString("<md:KeyDescriptor use=\"signing\">")));
 		assertThat(metadataStr, containsString("<md:AssertionConsumerService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\" Location=\"http://localhost:8080/java-saml-jspsample/acs.jsp\" index=\"1\"/>"));
-		assertThat(metadataStr, not(containsString("<md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"http://localhost:8080/java-saml-jspsample/sls.jsp\"/>"))); 
+		assertThat(metadataStr, not(containsString("<md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"http://localhost:8080/java-saml-jspsample/sls.jsp\"/>")));
 		assertThat(metadataStr, containsString("<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>"));
 	}
-	
+
 	/**
 	 * Tests the getSPMetadata method of the Saml2Settings
 	 * * Case Signed metadata
@@ -285,24 +313,24 @@ public class Saml2SettingsTest {
 		Node ds_signature_metadata = metadataDoc.getFirstChild().getFirstChild();
 
 		assertEquals(Constants.C14NEXC, ds_signature_metadata.getFirstChild().getFirstChild().getAttributes().getNamedItem("Algorithm").getNodeValue());
-		
+
 		assertEquals(Constants.RSA_SHA512, ds_signature_metadata.getFirstChild().getFirstChild().getNextSibling().getAttributes().getNamedItem("Algorithm").getNodeValue());
 		assertEquals(Constants.SHA1, ds_signature_metadata.getFirstChild().getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNextSibling().getAttributes().getNamedItem("Algorithm").getNodeValue());
 
 		assertEquals("md:SPSSODescriptor", metadataDoc.getDocumentElement().getFirstChild().getNextSibling().getNodeName());
-		
+
 		assertTrue(Util.validateXML(metadataDoc, SchemaFactory.SAML_SCHEMA_METADATA_2_0));
-		
+
 		assertThat(metadataStr, containsString("<md:SPSSODescriptor"));
 		assertThat(metadataStr, containsString("entityID=\"http://localhost:8080/java-saml-jspsample/metadata.jsp\""));
 		assertThat(metadataStr, containsString("AuthnRequestsSigned=\"true\""));
 		assertThat(metadataStr, containsString("WantAssertionsSigned=\"true\""));
 		assertThat(metadataStr, containsString("<md:KeyDescriptor use=\"signing\">"));
 		assertThat(metadataStr, containsString("<md:AssertionConsumerService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\" Location=\"http://localhost:8080/java-saml-jspsample/acs.jsp\" index=\"1\">"));
-		assertThat(metadataStr, containsString("<md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"http://localhost:8080/java-saml-jspsample/sls.jsp\">")); 
+		assertThat(metadataStr, containsString("<md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"http://localhost:8080/java-saml-jspsample/sls.jsp\">"));
 		assertThat(metadataStr, containsString("<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>"));
 	}
-	
+
 	/**
 	 * Tests the validateMetadata method of the Saml2Settings
 	 * Case Valid
@@ -315,7 +343,7 @@ public class Saml2SettingsTest {
 	public void testValidateMetadataValid() throws Exception {
 		Saml2Settings settings = new SettingsBuilder().fromFile("config/config.all.properties").build();
 		String metadataStr = settings.getSPMetadata();
-		
+
 		List<String> errors = Saml2Settings.validateMetadata(metadataStr);
 		assertTrue(errors.isEmpty());
 	}
@@ -338,7 +366,7 @@ public class Saml2SettingsTest {
 		assertFalse(errors.isEmpty());
 		assertTrue(errors.contains("Invalid SAML Metadata. Not match the saml-schema-metadata-2.0.xsd"));
 	}
-	
+
 	/**
 	 * Tests the validateMetadata method of the Saml2Settings
 	 * Case Invalid: noEntityDescriptor_xml
@@ -423,7 +451,7 @@ public class Saml2SettingsTest {
 
 		Calendar validUntilTime = Calendar.getInstance();
 		validUntilTime.add(Calendar.DAY_OF_YEAR, -2);
-		
+
 		Metadata metadataObj = new Metadata(settings, validUntilTime, null);
 		String metadataStr = metadataObj.getMetadataString();
 		metadataStr = metadataStr.replace("cacheDuration=\"PT604800S\"", "");
