@@ -19,6 +19,7 @@ public class AzureKeyVault extends HSM {
 	private String tenantId;
 	private String keyVaultId;
 	private CryptographyClient akvClient;
+	private HashMap<String, KeyWrapAlgorithm> algorithmMapping;
 
 	/**
 	 * Constructor to initialise an HSM object.
@@ -34,20 +35,37 @@ public class AzureKeyVault extends HSM {
 		this.clientCredentials = clientCredentials;
 		this.tenantId = tenantId;
 		this.keyVaultId = keyVaultId;
+
+		this.algorithmMapping = createAlgorithmMapping();
 	}
 
 	/**
-	 * Retrieves the correct algorithm fromt he KeyWrapAlgorithm class
-	 * according to the algorithm URL retrieved from the SAML assertion.
+	 * Creates a mapping between the URLs received from the encrypted SAML
+	 * assertion and the algorithms as how they are expected to be received from
+	 * the Azure Key Vault.
+	 *
+	 * @return The algorithm mapping.
+	 */
+	private HashMap<String, KeyWrapAlgorithm> createAlgorithmMapping() {
+		HashMap<String, KeyWrapAlgorithm> mapping = new HashMap<>();
+
+		mapping.put(Constants.RSA_1_5, KeyWrapAlgorithm.RSA1_5);
+		mapping.put(Constants.RSA_OAEP_MGF1P, KeyWrapAlgorithm.RSA_OAEP);
+		mapping.put(Constants.A128KW, KeyWrapAlgorithm.A128KW);
+		mapping.put(Constants.A192KW, KeyWrapAlgorithm.A192KW);
+		mapping.put(Constants.A256KW, KeyWrapAlgorithm.A256KW);
+
+		return mapping;
+	}
+
+	/**
+	 * Retrieves the key wrap algorithm object based on the algorithm URL passed
+	 * within the SAML assertion.
 	 *
 	 * @param algorithmUrl The algorithm URL.
-	 * @return The encryption algorithm.
+	 * @return The KeyWrapAlgorithm.
 	 */
 	private KeyWrapAlgorithm getAlgorithm(String algorithmUrl) {
-		HashMap<String, KeyWrapAlgorithm> algorithmMapping = new HashMap<>();
-		algorithmMapping.put(Constants.RSA_1_5, KeyWrapAlgorithm.RSA1_5);
-		algorithmMapping.put(Constants.RSA_OAEP_MGF1P, KeyWrapAlgorithm.RSA_OAEP);
-
 		return algorithmMapping.get(algorithmUrl);
 	}
 

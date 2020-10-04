@@ -2,17 +2,12 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
     <suppress>
         <notes></notes>
-        <filePath regex="true">.*\bazure-core-http-netty-1.5.4\.jar</filePath>
-        <cve>CVE-2015-2156</cve>
+        <filePath regex="true">.*\bmsal4j-1.6.1\.jar</filePath>
+        <cve>CVE-2019-20138</cve>
     </suppress>
     <suppress>
         <notes></notes>
-        <filePath regex="true">.*\bnetty-tcnative-boringssl-static-2.0.31.Final\.jar</filePath>
-        <cve>CVE-2015-2156</cve>
-    </suppress>
-    <suppress>
-        <notes></notes>
-        <filePath regex="true">.*\breactor-netty-0.9.10.RELEASE\.jar</filePath>
-        <cve>CVE-2015-2156</cve>
+        <filePath regex="true">.*\boauth2-oidc-sdk-6.14\.jar</filePath>
+        <cve>CVE-2007-1652</cve>
     </suppress>
 </suppressions>
