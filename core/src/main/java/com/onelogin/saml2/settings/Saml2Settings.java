@@ -882,8 +882,12 @@ public class Saml2Settings {
 			LOGGER.error(errorMsg);
 		}
 
-		if (this.getHsm() == null && (this.getAuthnRequestsSigned() || this.getLogoutRequestSigned()
-			|| this.getLogoutResponseSigned() || this.getWantAssertionsEncrypted() || this.getWantNameIdEncrypted()) && !this.checkSPCerts()) {
+		if ((this.getAuthnRequestsSigned() == true ||
+				this.getLogoutRequestSigned() == true ||
+				this.getLogoutResponseSigned() == true ||
+				this.getWantAssertionsEncrypted() == true ||
+				this.getWantNameIdEncrypted() == true)
+				&& !this.checkSPCerts() && this.getHsm() == null) {
 			errorMsg = "sp_cert_not_found_and_required";
 			errors.add(errorMsg);
 			LOGGER.error(errorMsg);

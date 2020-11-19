@@ -1088,7 +1088,7 @@ public final class Util {
 	 *
 	 * @throws Exception
 	 */
-	public static void decryptUsingHsm(Element encryptedDataElement, HSM hsm) throws Exception {
+	public static void decryptElementUsingHsm(Element encryptedDataElement, HSM hsm) throws Exception {
 		validateEncryptedData(encryptedDataElement);
 
 		XMLCipher xmlCipher = XMLCipher.getInstance();

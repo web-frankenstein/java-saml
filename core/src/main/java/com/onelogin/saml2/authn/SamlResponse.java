@@ -1061,7 +1061,7 @@ public class SamlResponse {
 		Element encryptedData = (Element) encryptedDataNodes.item(0);
 
 		if (hsm != null) {
-			Util.decryptUsingHsm(encryptedData, hsm);
+			Util.decryptElementUsingHsm(encryptedData, hsm);
 		} else {
 			Util.decryptElement(encryptedData, key);
 		}
