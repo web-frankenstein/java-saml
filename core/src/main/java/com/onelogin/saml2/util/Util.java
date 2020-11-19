@@ -1180,7 +1180,7 @@ public final class Util {
 	 *
 	 * @throws Exception
 	 */
-	public static void decryptUsingHsm(Element encryptedDataElement, HSM hsm) {
+	public static void decryptElementUsingHsm(Element encryptedDataElement, HSM hsm) {
 		try {
 			validateEncryptedData(encryptedDataElement);
 
